@@ -5,9 +5,315 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./scss/styles.scss" />
-    <title>Document</title>
+    <title>Trello clone</title>
   </head>
   <body>
+    <header>
+      <div>
+        <h1 class="flex-0 flex-grow">Trello Clone</h1>
+        <nav class="flex-0 flex-grow"></nav>
+        <div class="flex-0">
+          <span class="badge">00:29</span>
+        </div>
+      </div>
+    </header>
+    <main>
+      <section class="block">
+        <h2 class="block-header">TO-DO</h2>
+        <div class="block-actions">
+          <span class="counter" id="todo-count">0</span>
+          <button
+            class="action"
+            onclick="show(['modal-wrapper', 'add-todo-modal'])"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="nothing" id="todo-nothing">No entries</div>
+        <div id="todo-content" class="block-content"></div>
+      </section>
+      <section class="block">
+        <h2 class="block-header">In progress</h2>
+        <div class="block-actions">
+          <span class="counter" id="inprogress-count">0</span>
+        </div>
+        <div class="nothing" id="inprogress-nothing">No entries</div>
+        <div id="inprogress-content" class="block-content"></div>
+      </section>
+      <section class="block">
+        <h2 class="block-header">Done</h2>
+        <div class="block-actions">
+          <span class="counter" id="done-count">0</span>
+          <button
+            class="action"
+            onclick="show(['modal-wrapper', 'remove-all-todo-modal'])"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="nothing" id="done-nothing">No entries</div>
+        <div id="done-content" class="block-content"></div>
+      </section>
+    </main>
+    <footer></footer>
+    <!-- modals section -->
+    <div id="modal-wrapper">
+      <div class="modal-window-outer" id="add-todo-modal">
+        <div class="modal-window">
+          <h2 class="block-header">Add new TO-DO</h2>
+          <div>Username:</div>
+          <input
+            class="base-input"
+            type="text"
+            id="add-modal-username"
+            placeholder="User name..."
+          />
+          <div>Description:</div>
+          <textarea
+            class="base-input"
+            id="add-modal-description"
+            placeholder="Description..."
+            width="100%"
+          ></textarea>
+          <div class="modal-actions">
+            <button
+              class="modal-button"
+              onclick="hide(['modal-wrapper', 'add-todo-modal'])"
+            >
+              Cancel
+            </button>
+            <button
+              class="modal-button"
+              onclick="
+                        createTODO(getValue('add-modal-username'), getValue('add-modal-description'));
+                        cleanupFields(['add-modal-username', 'add-modal-description']);
+                        hide(['modal-wrapper', 'add-todo-modal']);
+                        "
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-window-outer" id="edit-todo-modal">
+        <div class="modal-window">
+          <h2 class="block-header">Edit TO-DO</h2>
+          <div>Username:</div>
+          <input
+            class="base-input"
+            type="text"
+            id="edit-modal-username"
+            placeholder="User name..."
+          />
+          <div>Description:</div>
+          <textarea
+            class="base-input"
+            id="edit-modal-description"
+            placeholder="Description..."
+            width="100%"
+          ></textarea>
+          <div class="modal-actions">
+            <button
+              class="modal-button"
+              onclick="hide(['modal-wrapper', 'edit-todo-modal']);"
+            >
+              Cancel
+            </button>
+            <button
+              class="modal-button"
+              onclick="
+                        updateTODO(activeTodoId, TODOStatus.INITIATED, getValue('edit-modal-username'), getValue('edit-modal-description'));
+                        hide(['modal-wrapper', 'edit-todo-modal']);
+                        "
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-window-outer" id="remove-all-todo-modal">
+        <div class="modal-window">
+          <h2 class="block-header">
+            You're going to delete all todos. Are you sure?
+          </h2>
+          <div class="modal-actions">
+            <button
+              class="modal-button"
+              onclick="hide(['modal-wrapper', 'remove-all-todo-modal']);"
+            >
+              No
+            </button>
+            <button
+              class="modal-button"
+              onclick="
+                        deleteAll();
+                        hide(['modal-wrapper', 'remove-all-todo-modal']);
+                        "
+            >
+              Yes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- templates -->
+    <div class="templates">
+      <div class="entry" id="todo-template">
+        <h3></h3>
+        <div></div>
+        <time></time>
+        <div class="entry-actions">
+          <button
+            class="entry-action"
+            onclick="editTODO(event.currentTarget.parentElement.parentElement.id)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"
+              />
+              <path
+                fill-rule="evenodd"
+                d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <button
+            class="entry-action second-action"
+            onclick="removeTODO(event.currentTarget.parentElement.parentElement.id)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <button
+            class="entry-action second-action"
+            onclick="updateTODO(event.currentTarget.parentElement.parentElement.id, TODOStatus.INPROGRESS)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="entry" id="inprogress-template">
+        <h3></h3>
+        <div></div>
+        <time></time>
+        <div class="entry-actions">
+          <button
+            class="entry-action second-action"
+            onclick="updateTODO(event.currentTarget.parentElement.parentElement.id, TODOStatus.INITIATED)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <button
+            class="entry-action second-action"
+            onclick="updateTODO(event.currentTarget.parentElement.parentElement.id, TODOStatus.DONE)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="entry" id="done-template">
+        <h3></h3>
+        <div></div>
+        <time></time>
+        <div class="entry-actions">
+          <button
+            class="entry-action second-action"
+            onclick="removeTODO(event.currentTarget.parentElement.parentElement.id)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- scripts -->
     <script src="./js/index.js"></script>
   </body>
 </html>
